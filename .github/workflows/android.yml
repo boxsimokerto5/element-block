@@ -84,8 +84,9 @@ jobs:
           APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
           # Sign the APK
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore release.keystore -storepass "${{ secrets.KEYSTORE_PASSWORD || 'android' }}" -keypass "${{ secrets.KEY_PASSWORD || 'android' }}" $APK_PATH release-key
-          # Zipalign and rename
-          zipalign -v 4 $APK_PATH element-blocks-release.apk
+          # Find zipalign and run it
+          ZIPALIGN=$(find $ANDROID_HOME/build-tools -name zipalign | sort -r | head -n 1)
+          $ZIPALIGN -v 4 $APK_PATH element-blocks-release.apk
 
       - name: Sign AAB
         run: |
