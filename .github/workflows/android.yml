@@ -47,12 +47,16 @@ jobs:
       - name: Generate App Icons (Automatic)
         run: |
           if [ -f "logo.png" ]; then
+            # Clean and fix the PNG file using ImageMagick
+            sudo apt-get install -y imagemagick
+            convert logo.png -strip -alpha on logo_fixed.png
+            
             mkdir -p assets
-            cp logo.png assets/icon-only.png
-            cp logo.png assets/icon-foreground.png
-            cp logo.png assets/icon-background.png
-            cp logo.png assets/splash.png
-            cp logo.png assets/splash-dark.png
+            cp logo_fixed.png assets/icon-only.png
+            cp logo_fixed.png assets/icon-foreground.png
+            cp logo_fixed.png assets/icon-background.png
+            cp logo_fixed.png assets/splash.png
+            cp logo_fixed.png assets/splash-dark.png
             npx @capacitor/assets generate --android
           fi
 
