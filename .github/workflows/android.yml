@@ -56,14 +56,14 @@ jobs:
             npx @capacitor/assets generate --android
           fi
 
-      - name: Make gradlew executable
-        run: chmod +x android/gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Build Android APK & AAB
         run: |
           cd android
-          ./gradlew assembleRelease
-          ./gradlew bundleRelease
+          gradle assembleRelease
+          gradle bundleRelease
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'android' }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android' }}
