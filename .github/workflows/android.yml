@@ -82,17 +82,23 @@ jobs:
       - name: Sign APK
         run: |
           APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          # Sign the APK
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore release.keystore -storepass "${{ secrets.KEYSTORE_PASSWORD || 'android' }}" -keypass "${{ secrets.KEY_PASSWORD || 'android' }}" $APK_PATH release-key
+          # Zipalign and rename
+          zipalign -v 4 $APK_PATH element-blocks-release.apk
 
       - name: Sign AAB
         run: |
           AAB_PATH=$(find android/app/build/outputs/bundle/release -name "*.aab" | head -n 1)
+          # Sign the AAB
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore release.keystore -storepass "${{ secrets.KEYSTORE_PASSWORD || 'android' }}" -keypass "${{ secrets.KEY_PASSWORD || 'android' }}" $AAB_PATH release-key
+          # Rename for clarity
+          cp $AAB_PATH element-blocks-release.aab
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: element-blocks-builds
           path: |
-            android/app/build/outputs/apk/release/*.apk
-            android/app/build/outputs/bundle/release/*.aab
+            element-blocks-release.apk
+            element-blocks-release.aab
