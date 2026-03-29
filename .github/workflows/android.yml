@@ -1,0 +1,84 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Web App
+        run: npm run build
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Capacitor Sync
+        run: npx cap sync android
+
+      - name: Generate Keystore (Automatic)
+        run: |
+          if [ ! -f "release.keystore" ]; then
+            keytool -genkey -v -keystore release.keystore -alias release-key -keyalg RSA -keysize 2048 -validity 10000 -storepass "${{ secrets.KEYSTORE_PASSWORD || 'android' }}" -keypass "${{ secrets.KEY_PASSWORD || 'android' }}" -dname "CN=ElementBlocks, OU=Galaxy, O=Galaxy, L=Galaxy, S=Galaxy, C=ID"
+          fi
+
+      - name: Generate App Icons (Automatic)
+        run: |
+          if [ -f "logo.png" ]; then
+            mkdir -p assets
+            cp logo.png assets/icon-only.png
+            cp logo.png assets/icon-foreground.png
+            cp logo.png assets/icon-background.png
+            cp logo.png assets/splash.png
+            cp logo.png assets/splash-dark.png
+            npx @capacitor/assets generate --android
+          fi
+
+      - name: Build Android APK & AAB
+        run: |
+          cd android
+          ./gradlew assembleRelease
+          ./gradlew bundleRelease
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'android' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android' }}
+
+      - name: Sign APK
+        run: |
+          APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore release.keystore -storepass "${{ secrets.KEYSTORE_PASSWORD || 'android' }}" -keypass "${{ secrets.KEY_PASSWORD || 'android' }}" $APK_PATH release-key
+
+      - name: Sign AAB
+        run: |
+          AAB_PATH=$(find android/app/build/outputs/bundle/release -name "*.aab" | head -n 1)
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore release.keystore -storepass "${{ secrets.KEYSTORE_PASSWORD || 'android' }}" -keypass "${{ secrets.KEY_PASSWORD || 'android' }}" $AAB_PATH release-key
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: element-blocks-builds
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
