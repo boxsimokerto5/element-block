@@ -56,6 +56,9 @@ jobs:
             npx @capacitor/assets generate --android
           fi
 
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
       - name: Build Android APK & AAB
         run: |
           cd android
