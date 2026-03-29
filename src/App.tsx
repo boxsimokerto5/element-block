@@ -26,12 +26,6 @@ const GalacticLogo = ({ size = "large" }: { size?: "small" | "large" }) => {
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           className={`${blockSize} bg-gradient-to-br from-red-500 to-orange-600 rounded-2xl shadow-[0_0_20px_rgba(239,68,68,0.5)] flex items-center justify-center border border-white/20 overflow-hidden`}
         >
-          <img 
-            src="/logo.png" 
-            alt="" 
-            className="w-full h-full object-cover opacity-20 absolute"
-            onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
-          />
           <Zap className="text-white relative z-10" size={size === "large" ? 40 : 30} />
         </motion.div>
         

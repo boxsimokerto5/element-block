@@ -44,26 +44,6 @@ jobs:
             keytool -genkey -v -keystore release.keystore -alias release-key -keyalg RSA -keysize 2048 -validity 10000 -storepass "${{ secrets.KEYSTORE_PASSWORD || 'android' }}" -keypass "${{ secrets.KEY_PASSWORD || 'android' }}" -dname "CN=ElementBlocks, OU=Galaxy, O=Galaxy, L=Galaxy, S=Galaxy, C=ID"
           fi
 
-      - name: Generate App Icons (Automatic)
-        run: |
-          if [ -f "logo.png" ]; then
-            sudo apt-get install -y imagemagick
-            # Force conversion to a clean, standard 32-bit RGBA PNG with 8-bit depth
-            convert logo.png -strip -colorspace sRGB -depth 8 PNG32:logo_fixed.png
-            
-            mkdir -p assets
-            cp logo_fixed.png assets/icon-only.png
-            cp logo_fixed.png assets/icon-foreground.png
-            cp logo_fixed.png assets/icon-background.png
-            cp logo_fixed.png assets/splash.png
-            cp logo_fixed.png assets/splash-dark.png
-            
-            npx @capacitor/assets generate --android
-            
-            # Final safety check: Clean all generated PNGs to ensure AAPT2 compatibility
-            find android/app/src/main/res -name "*.png" -exec mogrify -strip {} +
-          fi
-
       - name: Remove corrupt Gradle wrapper
         run: rm -rf android/gradle/wrapper
 
