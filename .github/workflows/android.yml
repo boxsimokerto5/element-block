@@ -38,11 +38,6 @@ jobs:
       - name: Capacitor Sync
         run: npx cap sync android
 
-      - name: Clean PNGs for AAPT2 compatibility
-        run: |
-          sudo apt-get install -y imagemagick
-          find android/app/src/main/res -name "*.png" -exec mogrify -strip {} +
-
       - name: Generate Keystore (Automatic)
         run: |
           if [ ! -f "release.keystore" ]; then
